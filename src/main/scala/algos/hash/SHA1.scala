@@ -1,7 +1,9 @@
 package algos.hash
 
 import algos.common.BitsLike.instances._
+import algos.common.FromBits.instances._
 import algos.common.BitsLike.ops._
+import algos.common.FromBits.ops._
 import algos.common.utils._
 import mouse.all._
 
@@ -17,19 +19,17 @@ object SHA1 {
 
   def apply: SHA1 = new SHA1 {
 
-    private val A = 0x67452301L
-    private val B = 0xEFCDAB89L
-    private val C = 0x98BADCFEL
-    private val D = 0x10325476L
-    private val E = 0xC3D2E1F0L
+    private val A: Long = 0x67452301L
+    private val B: Long = 0xEFCDAB89L
+    private val C: Long = 0x98BADCFEL
+    private val D: Long = 0x10325476L
+    private val E: Long = 0xC3D2E1F0L
 
     override def make(input: String): String = {
       val validatedData = formLastBlock(input)
       val (ar, br, cr, dr, er) = validatedData.foldLeft(A, B, C, D, E) {
         case ((a, b, c, d, e), wInput: String) =>
-          val wInit: List[Long] = wInput.grouped(32).toList.map(str32 => java.lang.Long.parseLong(str32, 2))
-          println(wInit)
-          val wMain: List[Long] = (16 to 79).foldLeft(wInit) {
+          val wMain: List[Long] = (16 to 79).foldLeft(wInput.grouped(32).toList.map(_.liftToLong)) {
             case (acc: List[Long], i: Int) =>
               acc appended leftRotate(acc(i - 3) ^ acc(i - 8) ^ acc(i - 14) ^ acc(i - 16), 1)
           }
