@@ -14,13 +14,14 @@ trait SHA1 { def make(input: String): String }
 object SHA1 {
   def apply: SHA1 = new SHA1 {
     override def make(input: String): String = {
-      val ar :: br :: cr :: dr :: er :: _ = formLastBlock(input).foldLeft(List(A, B, C, D, E)) {
-        case (a :: b :: c :: d :: e :: _, wIn) =>
-          val w: List[Block64Bits] = wIn.value.grouped(32).toList.map(_.liftToLong |> Block64Bits.apply) |> computeWi
-          val (aN, bN, cN, dN, eN) = runBlockCycle(a, b, c, d, e, w)
-          List(a + aN, b + bN, c + cN, d + dN, e + eN).map(_ & 0xFFFFFFFFL)
-        case (l, _) => l
-      }
+      val ar :: br :: cr :: dr :: er :: _ = formLastBlock(input)
+        .foldLeft(List(A, B, C, D, E)) {
+          case (a :: b :: c :: d :: e :: _, wIn) =>
+            val w: List[Block64Bits] = wIn.value.grouped(32).toList.map(_.liftToLong |> Block64Bits.apply) |> computeWi
+            val (aN, bN, cN, dN, eN) = runBlockCycle(a, b, c, d, e, w)
+            List(a + aN, b + bN, c + cN, d + dN, e + eN).map(_ & 0xFFFFFFFFL)
+          case (l, _) => l
+        }
       "%08x%08x%08x%08x%08x".format(ar, br, cr, dr, er)
     }
 
@@ -55,7 +56,11 @@ object SHA1 {
     private def leftRotate(block: Long, count: Int): Long = ((block << count) | (block >> (32 - count))) & 0xFFFFFFFFL
 
     private def formLastBlock(input: String): List[Block512Bits] = {
-      val inputBits: String                    = input.map(_.asBits).foldLeft("")(_ + _)
+      val bitsRaw: IndexedSeq[String] = input.map(_.asBits)
+      val bitsSize                    = bitsRaw.foldLeft(0: Int) { case (acc, next) => acc + next.length }
+      val mutableBitsCollection       = new scala.collection.mutable.StringBuilder(bitsSize)
+      for (e <- bitsRaw) mutableBitsCollection.append(e)
+      val inputBits                            = mutableBitsCollection.toString()
       val groupedInputBits: List[Block512Bits] = inputBits.grouped(512).map(Block512Bits.apply).toList
       def expandLastBlock(tailBlockBits: String): String = {
         @tailrec def loop(acc: String): String =
