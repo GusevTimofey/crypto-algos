@@ -1,28 +1,32 @@
-name := "crypto-algos"
+lazy val settings = Seq(
+  name := "crypto-algos",
+  scalacOptions ++= options,
+  version := "0.1",
+  resolvers += Resolver.sonatypeRepo("public"),
+  resolvers += Resolver.sonatypeRepo("snapshots"),
+  scalaVersion := "2.13.2"
+)
 
-version := "0.1"
+lazy val fs2Version         = "2.1.0"
+lazy val catsVersion        = "2.1.1"
+lazy val catsEffectsVersion = "2.0.0"
 
-scalaVersion := "2.13.2"
-
-val fs2Version         = "2.1.0"
-val catsVersion        = "2.1.1"
-val catsEffectsVersion = "2.0.0"
-
-val cats: Seq[ModuleID] = Seq(
+lazy val cats: Seq[ModuleID] = Seq(
   "org.typelevel" %% "cats-core"   % catsVersion,
   "org.typelevel" %% "cats-effect" % catsEffectsVersion,
   "co.fs2"        %% "fs2-core"    % fs2Version,
   "co.fs2"        %% "fs2-io"      % fs2Version
 )
 
-libraryDependencies ++= Seq(
+lazy val dependencies = Seq(
   "com.google.guava" % "guava"       % "28.2-jre",
   "org.typelevel"    %% "mouse"      % "0.24",
   "org.typelevel"    %% "simulacrum" % "1.0.0",
-  "io.estatico"      %% "newtype"    % "0.4.3"
+  "io.estatico"      %% "newtype"    % "0.4.3",
+  compilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full)
 ) ++ cats
 
-scalacOptions in ThisBuild ++= Seq(
+lazy val options = Seq(
   "-language:_",
   "-Ymacro-annotations",
   "-language:postfixOps",
@@ -34,5 +38,25 @@ scalacOptions in ThisBuild ++= Seq(
   "-deprecation"
 )
 
-addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full)
-enablePlugins(JmhPlugin)
+lazy val root = project
+  .in(file("."))
+  .withId("crypto-algos")
+  .settings(settings)
+  .settings(moduleName := "crypto-algos", name := "crypto-algos")
+  .aggregate(algorithms, benchmarks)
+
+lazy val algorithms = project
+  .in(file(s"modules/algorithms"))
+  .settings(moduleName := "algorithms", name := "algorithms")
+  .withId("algorithms")
+  .settings(settings)
+  .settings(libraryDependencies ++= dependencies)
+
+lazy val benchmarks = project
+  .in(file(s"modules/benchmarks"))
+  .settings(moduleName := "benchmarks", name := "benchmarks")
+  .withId("benchmarks")
+  .settings(settings)
+  .settings(libraryDependencies ++= dependencies ++ Seq("org.openjdk.jmh" % "jmh-generator-annprocess" % "1.21"))
+  .enablePlugins(JmhPlugin)
+  .dependsOn(algorithms % "test->test")
