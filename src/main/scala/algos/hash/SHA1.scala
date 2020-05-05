@@ -26,9 +26,8 @@ object SHA1 {
     private val E: Long = 0xC3D2E1F0L
 
     override def make(input: String): String = {
-      val validatedData = formLastBlock(input)
-      val (ar, br, cr, dr, er) = validatedData.foldLeft(A, B, C, D, E) {
-        case ((a, b, c, d, e), wInput: String) =>
+      val ar :: br :: cr :: dr :: er :: _ = formLastBlock(input).foldLeft(List(A, B, C, D, E)) {
+        case (a :: b :: c :: d :: e :: _, wInput: String) =>
           val wMain: List[Long] = (16 to 79).foldLeft(wInput.grouped(32).toList.map(_.liftToLong)) {
             case (acc: List[Long], i: Int) =>
               acc appended leftRotate(acc(i - 3) ^ acc(i - 8) ^ acc(i - 14) ^ acc(i - 16), 1)
@@ -36,16 +35,11 @@ object SHA1 {
 
           val (aN, bN, cN, dN, eN) = (0 to 79).foldLeft(a, b, c, d, e) {
             case ((al, bl, cl, dl, el), i) =>
-              val lr = (leftRotate(al, 5) + Ft(bl, cl, dl, i) + el + Kt(i) + wMain(i)) & 0xFFFFFFFFL
-              (lr, al, leftRotate(bl, 30) & 0xFFFFFFFFL, cl, dl)
+              val newA = (leftRotate(al, 5) + Ft(bl, cl, dl, i) + el + Kt(i) + wMain(i)) & 0xFFFFFFFFL
+              (newA, al, leftRotate(bl, 30), cl, dl)
           }
-          (
-            (a + aN) & 0xFFFFFFFFL,
-            (b + bN) & 0xFFFFFFFFL,
-            (c + cN) & 0xFFFFFFFFL,
-            (d + dN) & 0xFFFFFFFFL,
-            (e + eN) & 0xFFFFFFFFL
-          )
+          List(a + aN, b + bN, c + cN, d + dN, e + eN).map(_ & 0xFFFFFFFFL)
+        case (l, _) => l
       }
       "%08x%08x%08x%08x%08x".format(ar, br, cr, dr, er)
     }
