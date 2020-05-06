@@ -51,7 +51,7 @@ object Cipher {
     def cipher(pKeys: List[Int])(block: Block64BitsString): Block64BitsString = {
       val (l16, r16) = (0 to 15).foldLeft(block.str.take(32).liftToInt -> block.str.drop(32).liftToInt) {
         case ((l, r), i) =>
-          (l ^ pKeys(i)) -> (r ^ F(l.asBits |> Block32BitsString).i)
+          (l ^ pKeys(i)) -> (r ^ F(l.asBits |> Block32BitsString.apply).i)
       }
       val (lr, rr) = (r16 ^ pKeys(17)) -> (l16 ^ pKeys(16))
       (lr.asBits + rr.asBits) |> Block64BitsString.apply
