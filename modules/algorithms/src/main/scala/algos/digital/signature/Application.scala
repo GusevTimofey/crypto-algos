@@ -2,16 +2,14 @@ package algos.digital.signature
 
 import java.io.File
 
+import algos.common.BitsLike.instances._
+import algos.common.BitsLike.ops._
 import algos.common.FileReader
+import algos.common.FromBits.instances._
+import algos.common.FromBits.ops._
 import algos.hash.HashFunction
 import cats.effect.{ ExitCode, IO, IOApp }
 import cats.syntax.functor._
-import algos.common.BitsLike.instances._
-import algos.common.FromBits.instances._
-import algos.common.BitsLike.ops._
-import algos.common.FromBits.ops._
-import algos.common.utils._
-import algos.common.types._
 
 object Application extends IOApp {
 
