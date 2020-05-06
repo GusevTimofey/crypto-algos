@@ -5,19 +5,20 @@ import algos.common.FromBits.instances._
 import algos.common.BitsLike.ops._
 import algos.common.FromBits.ops._
 import algos.common.utils._
+import algos.common.types._
 import mouse.all._
 
 import scala.annotation._
 
-trait SHA1 { def make(input: String): String }
+trait HashFunction { def make(input: String): String }
 
-object SHA1 {
-  def apply: SHA1 = new SHA1 {
+object HashFunction {
+  def apply: HashFunction = new HashFunction {
     override def make(input: String): String = {
       val ar :: br :: cr :: dr :: er :: _ = formLastBlock(input)
         .foldLeft(List(A, B, C, D, E)) {
           case (a :: b :: c :: d :: e :: _, wIn) =>
-            val w: List[Block64Bits] = wIn.value.grouped(32).toList.map(_.liftToLong |> Block64Bits.apply) |> computeWi
+            val w: List[Block64BitsLong] = wIn.value.grouped(32).toList.map(_.liftToLong |> Block64BitsLong.apply) |> computeWi
             val (aN, bN, cN, dN, eN) = runBlockCycle(a, b, c, d, e, w)
             List(a + aN, b + bN, c + cN, d + dN, e + eN).map(_ & 0xFFFFFFFFL)
           case (l, _) => l
@@ -25,16 +26,16 @@ object SHA1 {
       "%08x%08x%08x%08x%08x".format(ar, br, cr, dr, er)
     }
 
-    private def computeWi: List[Block64Bits] => List[Block64Bits] =
-      (wi: List[Block64Bits]) =>
+    private def computeWi: List[Block64BitsLong] => List[Block64BitsLong] =
+      (wi: List[Block64BitsLong]) =>
         (16 to 79).foldLeft(wi) {
           case (acc, i) =>
             val wi: Long = leftRotate(acc(i - 3).v ^ acc(i - 8).v ^ acc(i - 14).v ^ acc(i - 16).v, 1)
-            acc.appended(wi |> Block64Bits.apply)
+            acc.appended(wi |> Block64BitsLong.apply)
         }
 
-    private def runBlockCycle: (Long, Long, Long, Long, Long, List[Block64Bits]) => (Long, Long, Long, Long, Long) =
-      (a: Long, b: Long, c: Long, d: Long, e: Long, wRes: List[Block64Bits]) =>
+    private def runBlockCycle: (Long, Long, Long, Long, Long, List[Block64BitsLong]) => (Long, Long, Long, Long, Long) =
+      (a: Long, b: Long, c: Long, d: Long, e: Long, wRes: List[Block64BitsLong]) =>
         (0 to 79).foldLeft(a, b, c, d, e) {
           case ((al, bl, cl, dl, el), i) =>
             val newA = (leftRotate(al, 5) + Ft(bl, cl, dl, i) + el + Kt(i) + wRes(i).v) & 0xFFFFFFFFL
@@ -82,8 +83,4 @@ object SHA1 {
   private val C: Long = 0x98BADCFEL
   private val D: Long = 0x10325476L
   private val E: Long = 0xC3D2E1F0L
-
-  import io.estatico.newtype.macros.newtype
-  @newtype final case class Block512Bits(value: String)
-  @newtype final case class Block64Bits(v: Long)
 }

@@ -2,6 +2,7 @@ package algos.hash
 
 import java.io.File
 
+import algos.common.FileReader
 import cats.effect.{ ExitCode, IO, IOApp }
 import cats.syntax.functor._
 
@@ -15,7 +16,7 @@ object Application extends IOApp {
       reader    = FileReader[IO]
       inputData <- reader.readFrom(path)
       _         <- IO(println(s"File data was read"))
-      sha1      = SHA1.apply
+      sha1      = HashFunction.apply
       hash      = sha1.make(inputData)
       _         <- IO(println(s"Resulted hash is: $hash"))
     } yield ()).as(ExitCode.Success)

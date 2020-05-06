@@ -21,6 +21,7 @@ lazy val cats: Seq[ModuleID] = Seq(
 lazy val dependencies = Seq(
   "com.google.guava" % "guava"       % "28.2-jre",
   "org.typelevel"    %% "mouse"      % "0.24",
+  "io.monix"         %% "monix"      % "3.1.0",
   "org.typelevel"    %% "simulacrum" % "1.0.0",
   "io.estatico"      %% "newtype"    % "0.4.3",
   compilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full)

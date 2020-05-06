@@ -3,7 +3,7 @@ package benches
 import java.util.concurrent.TimeUnit
 
 import benches.SHA1Benches.SHA1BenchesState
-import algos.hash.SHA1
+import algos.hash.HashFunction
 import org.openjdk.jmh.annotations.{ Benchmark, Mode, Scope, State }
 import org.openjdk.jmh.infra.Blackhole
 import org.openjdk.jmh.profile.GCProfiler
@@ -14,15 +14,15 @@ class SHA1Benches {
 
   @Benchmark
   def mb1bench(state: SHA1BenchesState, bh: Blackhole): Unit =
-    bh.consume(SHA1.apply.make(state.mb1))
+    bh.consume(HashFunction.apply.make(state.mb1))
 
   @Benchmark
   def mb10bench(state: SHA1BenchesState, bh: Blackhole): Unit =
-    bh.consume(SHA1.apply.make(state.mb10))
+    bh.consume(HashFunction.apply.make(state.mb10))
 
   @Benchmark
   def mb100bench(state: SHA1BenchesState, bh: Blackhole): Unit =
-    bh.consume(SHA1.apply.make(state.mb100))
+    bh.consume(HashFunction.apply.make(state.mb100))
 }
 
 object SHA1Benches {
@@ -46,7 +46,7 @@ object SHA1Benches {
   class SHA1BenchesState {
     val mutableState1mb   = new scala.collection.mutable.StringBuilder(5000000)
     val mutableState10mb  = new scala.collection.mutable.StringBuilder(50000000)
-    val mutableState100mb = new scala.collection.mutable.StringBuilder(50000000)
+    val mutableState100mb = new scala.collection.mutable.StringBuilder(500000000)
 
     (0 to 500000).foreach(_ => mutableState1mb.append("e"))
     (0 to 5000000).foreach(_ => mutableState10mb.append("e"))

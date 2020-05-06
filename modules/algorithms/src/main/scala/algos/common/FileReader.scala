@@ -1,4 +1,4 @@
-package algos.hash
+package algos.common
 
 import java.nio.file.Path
 import java.util.concurrent.{ Executors, ThreadFactory }

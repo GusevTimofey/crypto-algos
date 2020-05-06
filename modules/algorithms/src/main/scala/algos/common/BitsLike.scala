@@ -20,6 +20,9 @@ object BitsLike {
     implicit object CharBitsLikeInstance extends BitsLike[Char] {
       override def asBits(c: Char): String = c.toBinaryString |> expandedAsBits
     }
+    implicit object IntBitsLikeInstance extends BitsLike[Int] {
+      override def asBits(i: Int): String = i.toBinaryString |> expandedAsBits
+    }
     implicit object LongBitsLikeInstance extends BitsLike[Long] {
       override def asBits(l: Long): String = l.toBinaryString |> expandedAsBits
     }
