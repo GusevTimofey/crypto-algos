@@ -19,18 +19,14 @@ object DS {
   def apply: DS = new RSA
 
   private class RSA extends DS {
+
     final val random: SecureRandom = new SecureRandom()
-    override def cipher(m: BigInt, privateKey: PrivateKey): CipherResult = {
-      val s: BigInt = m.modPow(privateKey.d, privateKey.n)
-      val res       = CipherResult(s, m)
-      res
-    }
-    override def decipher(cipherResult: CipherResult, publicKey: PublicKey): Boolean = {
-      val mDeciphered = cipherResult.s.modPow(publicKey.e, publicKey.n)
-      val res         = mDeciphered === cipherResult.m
-      println(s"Decipher result: $res")
-      res
-    }
+
+    override def cipher(m: BigInt, privateKey: PrivateKey): CipherResult =
+      CipherResult(m.modPow(privateKey.d, privateKey.n), m)
+
+    override def decipher(cipherResult: CipherResult, publicKey: PublicKey): Boolean =
+      cipherResult.s.modPow(publicKey.e, publicKey.n) === cipherResult.m
 
     def formKeysPair(bitSize: Int): (PublicKey, PrivateKey) = {
       val (p: BigInt, q: BigInt) = generateCoprimeNumbers(bitSize)
