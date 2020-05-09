@@ -16,7 +16,7 @@ object Application extends IOApp {
       reader    = FileReader[IO]
       inputData <- reader.readFrom(path)
       _         <- IO(println(s"File data was read"))
-      sha1      = HashFunction.apply
+      sha1      = HashFunction.sha1
       hash      = sha1.make(inputData)
       _         <- IO(println(s"Resulted hash is: $hash"))
     } yield ()).as(ExitCode.Success)

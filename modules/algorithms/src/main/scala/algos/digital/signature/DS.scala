@@ -3,14 +3,19 @@ package algos.digital.signature
 import java.math.BigInteger
 import java.security.SecureRandom
 
+import algos.common.BitsLike.instances._
+import algos.common.BitsLike.ops._
+import algos.common.FromBits.instances._
+import algos.common.FromBits.ops._
 import algos.digital.signature.DS.{ CipherResult, PrivateKey, PublicKey }
+import algos.hash.HashFunction
 import cats.instances.bigInt._
 import cats.syntax.eq._
 
 import scala.util.Random
 
 trait DS {
-  def cipher(m: BigInt, privateKey: PrivateKey): CipherResult
+  def cipher(m: String, privateKey: PrivateKey): CipherResult
   def decipher(cipherResult: CipherResult, publicKey: PublicKey): Boolean
   def formKeysPair(bitSize: Int): (PublicKey, PrivateKey)
 }
@@ -20,10 +25,15 @@ object DS {
 
   private class RSA extends DS {
 
+    final val sha1: HashFunction = HashFunction.sha1
+
     final val random: SecureRandom = new SecureRandom()
 
-    override def cipher(m: BigInt, privateKey: PrivateKey): CipherResult =
-      CipherResult(m.modPow(privateKey.d, privateKey.n), m)
+    override def cipher(m: String, privateKey: PrivateKey): CipherResult = {
+      val hash: String      = sha1.make(m)
+      val hashBytes: BigInt = BigInt(hash.flatMap(_.asBits.grouped(8).toList.map(_.liftToByte)).toArray)
+      CipherResult(hashBytes.modPow(privateKey.d, privateKey.n), hashBytes)
+    }
 
     override def decipher(cipherResult: CipherResult, publicKey: PublicKey): Boolean =
       cipherResult.s.modPow(publicKey.e, publicKey.n) === cipherResult.m

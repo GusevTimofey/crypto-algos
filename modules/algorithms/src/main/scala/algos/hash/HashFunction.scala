@@ -13,7 +13,7 @@ import scala.annotation._
 trait HashFunction { def make(input: String): String }
 
 object HashFunction {
-  def apply: HashFunction = new HashFunction {
+  def sha1: HashFunction = new HashFunction {
     override def make(input: String): String = {
       val ar :: br :: cr :: dr :: er :: _ = formLastBlock(input)
         .foldLeft(List(A, B, C, D, E)) {

@@ -14,15 +14,15 @@ class SHA1Benches {
 
   @Benchmark
   def mb1bench(state: SHA1BenchesState, bh: Blackhole): Unit =
-    bh.consume(HashFunction.apply.make(state.mb1))
+    bh.consume(HashFunction.sha1.make(state.mb1))
 
   @Benchmark
   def mb10bench(state: SHA1BenchesState, bh: Blackhole): Unit =
-    bh.consume(HashFunction.apply.make(state.mb10))
+    bh.consume(HashFunction.sha1.make(state.mb10))
 
   @Benchmark
   def mb100bench(state: SHA1BenchesState, bh: Blackhole): Unit =
-    bh.consume(HashFunction.apply.make(state.mb100))
+    bh.consume(HashFunction.sha1.make(state.mb100))
 }
 
 object SHA1Benches {
