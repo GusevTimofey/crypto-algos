@@ -10,13 +10,13 @@ import fs2.{ text, Stream }
 
 import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor }
 
-trait FileReader[F[_]] {
+trait FileReader[F[_], S[_[_], _]] {
   def readFrom(path: Path): F[String]
-  def writeTo(path: Path, data: String): F[Unit]
+  def writeTo(path: Path, data: S[F, String]): F[Unit]
 }
 
 object FileReader {
-  def apply[F[_]: Sync: ContextShift]: FileReader[F] = {
+  def apply[F[_]: Sync: ContextShift]: FileReader[F, fs2.Stream] = {
     val readerTF: ThreadFactory = new ThreadFactoryBuilder()
       .setNameFormat("file-reader-$d")
       .setDaemon(false)
@@ -24,7 +24,7 @@ object FileReader {
       .build()
     val readerEC: ExecutionContextExecutor = ExecutionContext.fromExecutor(Executors.newSingleThreadExecutor(readerTF))
     val blocker: Blocker                   = Blocker.liftExecutionContext(readerEC)
-    new FileReader[F] {
+    new FileReader[F, fs2.Stream] {
       override def readFrom(path: Path): F[String] =
         file
           .readAll(path, blocker, 4096)
@@ -34,10 +34,8 @@ object FileReader {
           .compile
           .fold("") { case (acc, str) => acc + str }
 
-      override def writeTo(path: Path, data: String): F[Unit] =
-        Stream
-          .emit(data)
-          .covary[F]
+      override def writeTo(path: Path, data: Stream[F, String]): F[Unit] =
+        data
           .through(text.utf8Encode)
           .through(file.writeAll(path, blocker))
           .compile

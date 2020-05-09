@@ -24,6 +24,7 @@ lazy val dependencies = Seq(
   "io.monix"         %% "monix"      % "3.1.0",
   "org.typelevel"    %% "simulacrum" % "1.0.0",
   "io.estatico"      %% "newtype"    % "0.4.3",
+  "org.scalatest"    %% "scalatest"  % "3.1.0" % Test,
   compilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full)
 ) ++ cats
 
