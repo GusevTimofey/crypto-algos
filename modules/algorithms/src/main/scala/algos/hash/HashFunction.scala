@@ -18,7 +18,8 @@ object HashFunction {
       val ar :: br :: cr :: dr :: er :: _ = formLastBlock(input)
         .foldLeft(List(A, B, C, D, E)) {
           case (a :: b :: c :: d :: e :: _, wIn) =>
-            val w: List[Block64BitsLong] = wIn.value.grouped(32).toList.map(_.liftToLong |> Block64BitsLong.apply) |> computeWi
+            val w: List[Block64BitsLong] =
+              wIn.value.grouped(32).toList.map(_.liftToLong |> Block64BitsLong.apply) |> computeWi
             val (aN, bN, cN, dN, eN) = runBlockCycle(a, b, c, d, e, w)
             List(a + aN, b + bN, c + cN, d + dN, e + eN).map(_ & 0xFFFFFFFFL)
           case (l, _) => l
@@ -57,11 +58,9 @@ object HashFunction {
     private def leftRotate(block: Long, count: Int): Long = ((block << count) | (block >> (32 - count))) & 0xFFFFFFFFL
 
     private def formLastBlock(input: String): List[Block512Bits] = {
-      val bitsRaw: IndexedSeq[String] = input.map(_.asBits)
-      val bitsSize                    = bitsRaw.foldLeft(0: Int) { case (acc, next) => acc + next.length }
-      val mutableBitsCollection       = new scala.collection.mutable.StringBuilder(bitsSize)
-      for (e <- bitsRaw) mutableBitsCollection.append(e)
-      val inputBits                            = mutableBitsCollection.toString()
+      val mutableBitsCollection: StringBuilder = new StringBuilder(input.length * 8)
+      for (next <- input) mutableBitsCollection.append(next.asBits)
+      val inputBits: String                    = mutableBitsCollection.toString()
       val groupedInputBits: List[Block512Bits] = inputBits.grouped(512).map(Block512Bits.apply).toList
       def expandLastBlock(tailBlockBits: String): String = {
         @tailrec def loop(acc: String): String =

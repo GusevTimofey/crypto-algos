@@ -15,19 +15,19 @@ import simulacrum.typeclass
 object BitsLike {
   object instances {
     implicit object ByteBitsLikeInstance extends BitsLike[Byte] {
-      override def asBits(b: Byte): String = b.toBinaryString |> expandedAsBits(8)
+      override def asBits(b: Byte): String = b.toBinaryString |> expandedAsBits
     }
     implicit object CharBitsLikeInstance extends BitsLike[Char] {
-      override def asBits(c: Char): String = c.toBinaryString |> expandedAsBits(16)
+      override def asBits(c: Char): String = c.toBinaryString |> expandedAsBits
     }
     implicit object IntBitsLikeInstance extends BitsLike[Int] {
-      override def asBits(i: Int): String = i.toBinaryString |> expandedAsBits(32)
+      override def asBits(i: Int): String = i.toBinaryString |> expandedAsBits
     }
     implicit object LongBitsLikeInstance extends BitsLike[Long] {
-      override def asBits(l: Long): String = l.toBinaryString |> expandedAsBits(64)
+      override def asBits(l: Long): String = l.toBinaryString |> expandedAsBits
     }
   }
 
-  private def expandedAsBits(requiredBits: Int): String => String =
-    (bits: String) => (0 until (requiredBits - bits.length)).map(_ => '0').foldLeft("")(_ + _) + bits
+  private def expandedAsBits: String => String =
+    (bits: String) => (0 until (8 - bits.length)).map(_ => '0').foldLeft("")(_ + _) + bits
 }
