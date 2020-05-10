@@ -82,13 +82,52 @@ object Cipher {
     }
 
     def pcbcEncrypt(input: Array[Byte], iv: Array[Byte]): Array[Byte] = {
-
-      ???
+      val blocks                  = input.grouped(8).toArray
+      val (lastBlock, _)          = expandLastBlock(blocks.lastOption.getOrElse(Array.emptyByteArray), 0)
+      val resBlocks               = blocks.dropRight(1).appended(lastBlock)
+      val firstBlock: Array[Byte] = resBlocks.headOption.getOrElse(Array.emptyByteArray)
+      val xorIv: Array[Byte]      = firstBlock.zip(iv).map { case (b, b1) => (b ^ b1).toByte }
+      val mutableEncrypted        = new scala.collection.mutable.ArrayBuffer[Array[Byte]](blocks.length)
+      val encrypted               = blockEncrypt(xorIv)
+      mutableEncrypted.append(encrypted)
+      var lastBlockBytes = encrypted
+      var openBytes      = firstBlock
+      for (b <- resBlocks.drop(1)) {
+        val bXor = b
+          .zip(lastBlockBytes)
+          .map { case (b, b1) => (b ^ b1).toByte }
+          .zip(openBytes)
+          .map { case (b, b1) => (b ^ b1).toByte }
+        val encrypted = blockEncrypt(bXor)
+        mutableEncrypted.append(encrypted)
+        openBytes = b
+        lastBlockBytes = encrypted
+      }
+      val r = mutableEncrypted.toArray.flatten
+      r
     }
 
     def pcbcDecrypt(input: Array[Byte], iv: Array[Byte]): Array[Byte] = {
-
-      ???
+      val blocks                  = input.grouped(8).toArray
+      val firstBlock: Array[Byte] = blocks.headOption.getOrElse(Array.emptyByteArray)
+      val mutableDecrypted        = new scala.collection.mutable.ArrayBuffer[Array[Byte]](blocks.length)
+      val encrypted               = blockDecrypt(firstBlock)
+      val fb                      = encrypted.zip(iv).map { case (b, b1) => (b ^ b1).toByte }
+      mutableDecrypted.append(fb)
+      var lastBlockBytes = firstBlock
+      var lastOpen       = fb
+      for (b <- blocks.drop(1)) {
+        val encrypted = blockDecrypt(b)
+        val bXor = encrypted
+          .zip(lastBlockBytes)
+          .map { case (b, b1) => (b ^ b1).toByte }
+          .zip(lastOpen)
+          .map { case (b, b1) => (b ^ b1).toByte }
+        mutableDecrypted.append(bXor)
+        lastOpen = bXor
+        lastBlockBytes = b
+      }
+      mutableDecrypted.toArray.flatten
     }
 
     def blockEncrypt(input: Array[Byte]): Array[Byte] = {
