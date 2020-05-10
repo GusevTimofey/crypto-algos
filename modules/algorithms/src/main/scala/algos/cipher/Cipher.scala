@@ -13,6 +13,9 @@ sealed trait Cipher {
 
   def pcbcEncrypt(input: Array[Byte], iv: Array[Byte]): Array[Byte]
   def pcbcDecrypt(input: Array[Byte], iv: Array[Byte]): Array[Byte]
+
+  def cfbEncrypt(input: Array[Byte], iv: Array[Byte]): Array[Byte]
+  def cfbDecrypt(input: Array[Byte], iv: Array[Byte]): Array[Byte]
 }
 
 object Cipher {
@@ -81,7 +84,7 @@ object Cipher {
       mutableDecrypted.toArray.flatten
     }
 
-    def pcbcEncrypt(input: Array[Byte], iv: Array[Byte]): Array[Byte] = {
+    override def pcbcEncrypt(input: Array[Byte], iv: Array[Byte]): Array[Byte] = {
       val blocks                  = input.grouped(8).toArray
       val (lastBlock, _)          = expandLastBlock(blocks.lastOption.getOrElse(Array.emptyByteArray), 0)
       val resBlocks               = blocks.dropRight(1).appended(lastBlock)
@@ -107,7 +110,7 @@ object Cipher {
       r
     }
 
-    def pcbcDecrypt(input: Array[Byte], iv: Array[Byte]): Array[Byte] = {
+    override def pcbcDecrypt(input: Array[Byte], iv: Array[Byte]): Array[Byte] = {
       val blocks                  = input.grouped(8).toArray
       val firstBlock: Array[Byte] = blocks.headOption.getOrElse(Array.emptyByteArray)
       val mutableDecrypted        = new scala.collection.mutable.ArrayBuffer[Array[Byte]](blocks.length)
@@ -126,6 +129,44 @@ object Cipher {
         mutableDecrypted.append(bXor)
         lastOpen = bXor
         lastBlockBytes = b
+      }
+      mutableDecrypted.toArray.flatten
+    }
+
+    override def cfbEncrypt(input: Array[Byte], iv: Array[Byte]): Array[Byte] = {
+      val blocks                  = input.grouped(8).toArray
+      val firstBlock: Array[Byte] = blocks.headOption.getOrElse(Array.emptyByteArray)
+      val mutableDecrypted        = new scala.collection.mutable.ArrayBuffer[Array[Byte]](blocks.length)
+      val encrypted               = blockEncrypt(iv)
+      val fb                      = encrypted.zip(firstBlock).map { case (b, b1) => (b ^ b1).toByte }
+      mutableDecrypted.append(fb)
+      var lastBlockBytes = fb
+      for (b <- blocks.drop(1)) {
+        val encrypted = blockEncrypt(lastBlockBytes)
+        val bXor = encrypted
+          .zip(b)
+          .map { case (b, b1) => (b ^ b1).toByte }
+        lastBlockBytes = bXor
+        mutableDecrypted.append(bXor)
+      }
+      mutableDecrypted.toArray.flatten
+    }
+
+    override def cfbDecrypt(input: Array[Byte], iv: Array[Byte]): Array[Byte] = {
+      val blocks                  = input.grouped(8).toArray
+      val firstBlock: Array[Byte] = blocks.headOption.getOrElse(Array.emptyByteArray)
+      val mutableDecrypted        = new scala.collection.mutable.ArrayBuffer[Array[Byte]](blocks.length)
+      val encrypted               = blockEncrypt(iv)
+      val fb                      = encrypted.zip(firstBlock).map { case (b, b1) => (b ^ b1).toByte }
+      mutableDecrypted.append(fb)
+      var lastBlockBytes = firstBlock
+      for (b <- blocks.drop(1)) {
+        val encrypted = blockEncrypt(lastBlockBytes)
+        val bXor = encrypted
+          .zip(b)
+          .map { case (b, b1) => (b ^ b1).toByte }
+        lastBlockBytes = b
+        mutableDecrypted.append(bXor)
       }
       mutableDecrypted.toArray.flatten
     }

@@ -29,7 +29,17 @@ object Application extends App {
     val decrypted: Array[Byte] = blowfish.pcbcDecrypt(encrypted, iv)
     println(decrypted.sameElements(input))
   }
+
+  def cfbR(): Unit = {
+    val blowfish: BlowFishCipher = Cipher.blowFish("blowfish")
+    val input: Array[Byte] = ("b1l1o1w1f1i1s1h1" * 50000).getBytes()
+    val iv = "11111111".getBytes
+    val encrypted: Array[Byte] = blowfish.cfbEncrypt(input, iv)
+    val decrypted: Array[Byte] = blowfish.cfbDecrypt(encrypted, iv)
+    println(decrypted.sameElements(input))
+  }
   //ecbR()
   //cbcR()
-  pcbcR()
+  //pcbcR()
+  cfbR()
 }
