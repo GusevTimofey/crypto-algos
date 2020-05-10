@@ -2,6 +2,9 @@ package algos.cipher
 
 object Application extends App {
 
-  Cipher.blowFish("abcde")
-
+  val a  = Cipher.blowFish("abcdefc")
+  val in = Array.fill(8)(1: Byte)
+  val e  = a.encrypt(in)
+  val d  = a.decrypt(e)
+  println(d.sameElements(in))
 }
