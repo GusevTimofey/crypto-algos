@@ -5,17 +5,17 @@ import com.google.common.primitives.Ints
 import mouse.all._
 
 sealed trait Cipher {
-  def ecbEncrypt(input: Array[Byte]): Array[Byte]
-  def ecbDecrypt(input: Array[Byte]): Array[Byte]
+  def ecbEncipher(input: Array[Byte]): Array[Byte]
+  def ecbDecipher(input: Array[Byte]): Array[Byte]
 
-  def cbcEncrypt(input: Array[Byte], iv: Array[Byte]): Array[Byte]
-  def cbcDecrypt(input: Array[Byte], iv: Array[Byte]): Array[Byte]
+  def cbcEncipher(input: Array[Byte], iv: Array[Byte]): Array[Byte]
+  def cbcDecipher(input: Array[Byte], iv: Array[Byte]): Array[Byte]
 
-  def pcbcEncrypt(input: Array[Byte], iv: Array[Byte]): Array[Byte]
-  def pcbcDecrypt(input: Array[Byte], iv: Array[Byte]): Array[Byte]
+  def pcbcEncipher(input: Array[Byte], iv: Array[Byte]): Array[Byte]
+  def pcbcDecipher(input: Array[Byte], iv: Array[Byte]): Array[Byte]
 
-  def cfbEncrypt(input: Array[Byte], iv: Array[Byte]): Array[Byte]
-  def cfbDecrypt(input: Array[Byte], iv: Array[Byte]): Array[Byte]
+  def cfbEncipher(input: Array[Byte], iv: Array[Byte]): Array[Byte]
+  def cfbDecipher(input: Array[Byte], iv: Array[Byte]): Array[Byte]
 }
 
 object Cipher {
@@ -31,7 +31,7 @@ object Cipher {
 
     val sMutable: Array[Array[Long]] = bfS
 
-    override def ecbEncrypt(input: Array[Byte]): Array[Byte] = {
+    override def ecbEncipher(input: Array[Byte]): Array[Byte] = {
       val blocks           = input.grouped(8).toArray
       val (lastBlock, _)   = expandLastBlock(blocks.lastOption.getOrElse(Array.emptyByteArray), 0)
       val resBlocks        = blocks.dropRight(1).appended(lastBlock)
@@ -40,14 +40,14 @@ object Cipher {
       mutableEncrypted.toArray.flatten
     }
 
-    override def ecbDecrypt(input: Array[Byte]): Array[Byte] = {
+    override def ecbDecipher(input: Array[Byte]): Array[Byte] = {
       val blocks           = input.grouped(8).toArray
       val mutableEncrypted = new scala.collection.mutable.ArrayBuffer[Array[Byte]](blocks.length)
       for (b <- blocks) mutableEncrypted.append(blockDecrypt(b))
       mutableEncrypted.toArray.flatten
     }
 
-    override def cbcEncrypt(input: Array[Byte], iv: Array[Byte]): Array[Byte] = {
+    override def cbcEncipher(input: Array[Byte], iv: Array[Byte]): Array[Byte] = {
       val blocks                  = input.grouped(8).toArray
       val (lastBlock, _)          = expandLastBlock(blocks.lastOption.getOrElse(Array.emptyByteArray), 0)
       val resBlocks               = blocks.dropRight(1).appended(lastBlock)
@@ -67,7 +67,7 @@ object Cipher {
       r
     }
 
-    override def cbcDecrypt(input: Array[Byte], iv: Array[Byte]): Array[Byte] = {
+    override def cbcDecipher(input: Array[Byte], iv: Array[Byte]): Array[Byte] = {
       val blocks                  = input.grouped(8).toArray
       val firstBlock: Array[Byte] = blocks.headOption.getOrElse(Array.emptyByteArray)
       val mutableDecrypted        = new scala.collection.mutable.ArrayBuffer[Array[Byte]](blocks.length)
@@ -84,7 +84,7 @@ object Cipher {
       mutableDecrypted.toArray.flatten
     }
 
-    override def pcbcEncrypt(input: Array[Byte], iv: Array[Byte]): Array[Byte] = {
+    override def pcbcEncipher(input: Array[Byte], iv: Array[Byte]): Array[Byte] = {
       val blocks                  = input.grouped(8).toArray
       val (lastBlock, _)          = expandLastBlock(blocks.lastOption.getOrElse(Array.emptyByteArray), 0)
       val resBlocks               = blocks.dropRight(1).appended(lastBlock)
@@ -110,7 +110,7 @@ object Cipher {
       r
     }
 
-    override def pcbcDecrypt(input: Array[Byte], iv: Array[Byte]): Array[Byte] = {
+    override def pcbcDecipher(input: Array[Byte], iv: Array[Byte]): Array[Byte] = {
       val blocks                  = input.grouped(8).toArray
       val firstBlock: Array[Byte] = blocks.headOption.getOrElse(Array.emptyByteArray)
       val mutableDecrypted        = new scala.collection.mutable.ArrayBuffer[Array[Byte]](blocks.length)
@@ -133,7 +133,7 @@ object Cipher {
       mutableDecrypted.toArray.flatten
     }
 
-    override def cfbEncrypt(input: Array[Byte], iv: Array[Byte]): Array[Byte] = {
+    override def cfbEncipher(input: Array[Byte], iv: Array[Byte]): Array[Byte] = {
       val blocks                  = input.grouped(8).toArray
       val firstBlock: Array[Byte] = blocks.headOption.getOrElse(Array.emptyByteArray)
       val mutableDecrypted        = new scala.collection.mutable.ArrayBuffer[Array[Byte]](blocks.length)
@@ -152,7 +152,7 @@ object Cipher {
       mutableDecrypted.toArray.flatten
     }
 
-    override def cfbDecrypt(input: Array[Byte], iv: Array[Byte]): Array[Byte] = {
+    override def cfbDecipher(input: Array[Byte], iv: Array[Byte]): Array[Byte] = {
       val blocks                  = input.grouped(8).toArray
       val firstBlock: Array[Byte] = blocks.headOption.getOrElse(Array.emptyByteArray)
       val mutableDecrypted        = new scala.collection.mutable.ArrayBuffer[Array[Byte]](blocks.length)
