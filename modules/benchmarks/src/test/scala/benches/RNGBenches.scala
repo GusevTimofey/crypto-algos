@@ -12,7 +12,7 @@ import org.openjdk.jmh.runner.{ Runner, RunnerException }
 
 class RNGBenches {
   @Benchmark
-  def mb1bench(state: RNGBenchesState, bh: Blackhole): Unit =
+  def rng(state: RNGBenchesState, bh: Blackhole): Unit =
     bh.consume(state.rng.next())
 }
 

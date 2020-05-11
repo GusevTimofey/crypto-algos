@@ -25,12 +25,12 @@ object DS {
 
   private class RSA extends DS {
 
-    final val sha1: HashFunction = HashFunction.sha1
+    final val hashFunction = HashFunction.sha1
 
     final val random: SecureRandom = new SecureRandom()
 
     override def cipher(m: String, privateKey: PrivateKey): CipherResult = {
-      val hash: String      = sha1.make(m)
+      val hash: String      = hashFunction.make(m)
       val hashBytes: BigInt = BigInt(hash.flatMap(_.asBits.grouped(8).toList.map(_.liftToByte)).toArray)
       CipherResult(hashBytes.modPow(privateKey.d, privateKey.n), hashBytes)
     }
