@@ -1,7 +1,7 @@
 package algos.cipher
 
 import algos.common.utils._
-import com.google.common.primitives.Ints
+import com.google.common.primitives.{ Ints, Longs }
 import mouse.all._
 
 sealed trait Cipher {
@@ -38,19 +38,21 @@ object Cipher {
         sMutable(i)(k) = bfS(i)(k)
 
     override def ecbEncipher(input: Array[Byte]): Array[Byte] = {
-      val blocks           = input.grouped(8).toArray
-      val (lastBlock, _)   = expandLastBlock(blocks.lastOption.getOrElse(Array.emptyByteArray), 0)
-      val resBlocks        = blocks.dropRight(1).appended(lastBlock)
-      val mutableEncrypted = new scala.collection.mutable.ArrayBuffer[Array[Byte]](blocks.length)
+      val blocks               = input.grouped(8).toArray
+      val (lastBlock, zeroNum) = expandLastBlock(blocks.lastOption.getOrElse(Array.emptyByteArray), 0)
+      val resBlocks            = blocks.dropRight(1).appended(lastBlock)
+      val mutableEncrypted     = new scala.collection.mutable.ArrayBuffer[Array[Byte]](blocks.length)
       for (b <- resBlocks) mutableEncrypted.append(blockEncrypt(b))
-      mutableEncrypted.toArray.flatten
+      mutableEncrypted.toArray.flatten.appendedAll(Ints.toByteArray(zeroNum))
     }
 
     override def ecbDecipher(input: Array[Byte]): Array[Byte] = {
-      val blocks           = input.grouped(8).toArray
+      val zeroNum          = Ints.fromByteArray(input.takeRight(4))
+      val blocks           = input.dropRight(4).grouped(8).toArray
       val mutableEncrypted = new scala.collection.mutable.ArrayBuffer[Array[Byte]](blocks.length)
       for (b <- blocks) mutableEncrypted.append(blockDecrypt(b))
-      mutableEncrypted.toArray.flatten
+      val result = mutableEncrypted.toArray.flatten
+      result.dropRight(zeroNum)
     }
 
     override def cbcEncipher(input: Array[Byte], iv: Array[Byte]): Array[Byte] = {
