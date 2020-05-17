@@ -39,7 +39,7 @@ object DB {
               .fromAutoCloseable(new ReadOptions().setSnapshot(db.getSnapshot).pure[F])
               .use(db.get(_, k).pure[F])
               .flatMap {
-                case v if v.isEmpty => new Exception("Empty value").raiseError
+                case v if v.isEmpty => new Exception("null value").raiseError
                 case v              => v.pure[F]
               }
         }

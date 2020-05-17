@@ -16,4 +16,6 @@ object RNG {
       (nextSeed >>> (48 - bits)).toInt
     }
   }
+
+  def seed: Long = System.nanoTime() * 8682522807148012L * 181783497276652981L
 }

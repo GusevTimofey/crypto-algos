@@ -16,8 +16,7 @@ object Application extends IOApp {
       _       <- IO(println(s"Start rng."))
       _       <- IO(println(s"Enter destination file path:"))
       pathStr <- IO(scala.io.StdIn.readLine())
-      seed    = System.nanoTime() * 8682522807148012L * 181783497276652981L
-      rng     = RNG(seed)
+      rng     = RNG(RNG.seed)
       file    <- IO(new File(pathStr))
       _       <- IO(file.createNewFile())
       stream  = Stream.emits(0 to 1000000).evalMap(_ => IO(rng.next().asBits))

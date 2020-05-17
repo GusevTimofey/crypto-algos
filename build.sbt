@@ -10,7 +10,8 @@ lazy val settings = Seq(
 lazy val fs2Version         = "2.1.0"
 lazy val catsVersion        = "2.1.1"
 lazy val catsEffectsVersion = "2.0.0"
-val http4sVersion           = "0.21.0"
+lazy val http4sVersion      = "0.21.0"
+lazy val circeVersion       = "0.12.3"
 
 lazy val cats: Seq[ModuleID] = Seq(
   "org.typelevel" %% "cats-core"   % catsVersion,
@@ -22,7 +23,15 @@ lazy val cats: Seq[ModuleID] = Seq(
 lazy val http4s: Seq[ModuleID] = Seq(
   "org.http4s" %% "http4s-dsl"          % http4sVersion,
   "org.http4s" %% "http4s-blaze-server" % http4sVersion,
-  "org.http4s" %% "http4s-blaze-client" % http4sVersion
+  "org.http4s" %% "http4s-blaze-client" % http4sVersion,
+  "org.http4s" %% "http4s-circe"        % http4sVersion
+)
+
+lazy val circe: Seq[ModuleID] = Seq(
+  "io.circe" %% "circe-core"    % circeVersion,
+  "io.circe" %% "circe-generic" % circeVersion,
+  "io.circe" %% "circe-parser"  % circeVersion,
+  "io.circe" %% "circe-refined" % circeVersion
 )
 
 lazy val dependencies = Seq(
@@ -79,7 +88,8 @@ lazy val apps = project
     libraryDependencies ++= dependencies ++ http4s ++ Seq(
       "org.rocksdb"       % "rocksdbjni"      % "6.4.6",
       "ch.qos.logback"    % "logback-classic" % "1.2.3",
-      "io.chrisdavenport" %% "log4cats-slf4j" % "0.4.0-M2"
-    )
+      "io.chrisdavenport" %% "log4cats-slf4j" % "0.4.0-M2",
+      "org.bouncycastle"  % "bcprov-jdk15on"  % "1.65"
+    ) ++ circe
   )
   .dependsOn(algorithms)
