@@ -27,9 +27,15 @@ object Cipher {
 
     val mod32: Long = Math.pow(2, 32).toLong
 
-    var pMutable: Array[Long] = bfP
+    var pMutable: Array[Long] = Array.ofDim(18)
 
-    val sMutable: Array[Array[Long]] = bfS
+    for (i <- 0 until 18) pMutable(i) = bfP(i)
+
+    val sMutable: Array[Array[Long]] = Array.ofDim(4, 256)
+
+    for (i <- 0 until 4)
+      for (k <- (0 until 255) by 1)
+        sMutable(i)(k) = bfS(i)(k)
 
     override def ecbEncipher(input: Array[Byte]): Array[Byte] = {
       val blocks           = input.grouped(8).toArray

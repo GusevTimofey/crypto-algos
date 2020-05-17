@@ -2,6 +2,8 @@ package e2e
 
 import java.security.SecureRandom
 
+import algos.cipher.Cipher
+import algos.cipher.Cipher.BlowFishCipher
 import algos.prng.RNG
 import cats.effect.{ Concurrent, Sync }
 import cats.syntax.flatMap._
@@ -10,7 +12,6 @@ import e2e.services.ClientService
 import fs2.Stream
 import fs2.concurrent.Queue
 import io.chrisdavenport.log4cats.Logger
-import utils.AES._
 import algos.common.utils._
 
 trait DHProgram[F[_], S[_[_], _]] {
@@ -44,7 +45,7 @@ object DHProgram {
             k         = bBig.modPow(a, p)
           } yield k
         )
-        .flatMap(k => chat(k, "alice"))
+        .flatMap(k => chat("alice", Cipher.blowFish(k.toString().take(8))))
 
     override def bobScenario: Stream[F, Unit] =
       Stream
@@ -59,12 +60,12 @@ object DHProgram {
             k    = aBig.modPow(b, pg.P)
           } yield k
         )
-        .flatMap(k => chat(k, "bob"))
+        .flatMap(k => chat("bob", Cipher.blowFish(k.toString().take(8))))
 
-    private def chat(k: BigInt, side: String): Stream[F, Unit] = {
+    private def chat(side: String, blowfish: BlowFishCipher): Stream[F, Unit] = {
       def received: Stream[F, Unit] =
         messages.dequeue
-          .evalMap(msg => Logger[F].info(s"$side: ${new String(decrypt(msg.bytes, k.toString()))}"))
+          .evalMap(msg => Logger[F].info(s"$side: ${new String(blowfish.ecbDecipher(msg.bytes))}"))
           .handleErrorWith { err =>
             Stream.eval(Logger[F].info(s"Error has occurred in receive function: ${err.getMessage}")) >> received
           }
@@ -75,7 +76,7 @@ object DHProgram {
           .covary[F]
           .repeat
           .evalMap(_ => F.delay(scala.io.StdIn.readLine()).flatTap(_ => Logger[F].info("$>")))
-          .evalMap(msg => cs.postMsg(e2e.Message(encrypt(msg.getBytes, k.toString()))))
+          .evalMap(msg => cs.postMsg(e2e.Message(blowfish.ecbEncipher(msg.getBytes))))
           .handleErrorWith { err =>
             Stream.eval(Logger[F].info(s"Error has occurred in send function: ${err.getMessage}")) >> send
           }
