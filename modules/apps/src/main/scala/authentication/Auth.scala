@@ -16,13 +16,13 @@ object Auth {
     private val hash: HashFunction = HashFunction.sha1
 
     override def enter: F[Unit] =
-      for {
+      (for {
         _          <- Logger[F].info(s"Enter your login:")
         inputLogin <- F.delay(scala.io.StdIn.readLine())
         contains   <- db.contains(inputLogin.getBytes)
         _ <- if (contains) checkPass(inputLogin)
             else Logger[F].info(s"Unknown user. Please, do registration") >> reg(inputLogin)
-      } yield ()
+      } yield ()) >> enter
 
     private def reg(l: String): F[Unit] =
       for {
