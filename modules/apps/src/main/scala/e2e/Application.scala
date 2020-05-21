@@ -3,6 +3,7 @@ package e2e
 import authentication.{ Auth, DB }
 import cats.effect.{ ExitCode, IO, IOApp }
 import cats.syntax.functor._
+import e2e.programs.DHProgram
 import e2e.services.{ ClientService, ServerService }
 import fs2.concurrent.Queue
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
@@ -51,6 +52,5 @@ object ApplicationAlice extends IOApp {
               _          <- (ss.run concurrently dh.aliceScenario).compile.drain
             } yield ()
           }
-      }
-      .as(ExitCode.Success)
+    }.as(ExitCode.Success)
 }

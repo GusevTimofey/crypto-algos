@@ -1,18 +1,19 @@
-package e2e
+package e2e.programs
 
 import java.security.SecureRandom
 
 import algos.cipher.Cipher
 import algos.cipher.Cipher.BlowFishCipher
+import algos.common.utils._
 import algos.prng.RNG
 import cats.effect.{ Concurrent, Sync }
 import cats.syntax.flatMap._
 import cats.syntax.functor._
 import e2e.services.ClientService
+import e2e.{ AValue, BValue, HttpDSL, PGValues }
 import fs2.Stream
 import fs2.concurrent.Queue
 import io.chrisdavenport.log4cats.Logger
-import algos.common.utils._
 
 trait DHProgram[F[_], S[_[_], _]] {
   def aliceScenario: S[F, Unit]
