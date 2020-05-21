@@ -4,7 +4,7 @@ lazy val settings = Seq(
   version := "0.1",
   resolvers += Resolver.sonatypeRepo("public"),
   resolvers += Resolver.sonatypeRepo("snapshots"),
-  scalaVersion := "2.13.2"
+  scalaVersion := "2.13.1"
 )
 
 lazy val fs2Version         = "2.1.0"
@@ -12,6 +12,7 @@ lazy val catsVersion        = "2.1.1"
 lazy val catsEffectsVersion = "2.0.0"
 lazy val http4sVersion      = "0.21.0"
 lazy val circeVersion       = "0.12.3"
+lazy val redisVersion       = "0.9.3"
 
 lazy val cats: Seq[ModuleID] = Seq(
   "org.typelevel" %% "cats-core"   % catsVersion,
@@ -86,10 +87,13 @@ lazy val apps = project
   .settings(settings)
   .settings(
     libraryDependencies ++= dependencies ++ http4s ++ Seq(
-      "org.rocksdb"       % "rocksdbjni"      % "6.4.6",
-      "ch.qos.logback"    % "logback-classic" % "1.2.3",
-      "io.chrisdavenport" %% "log4cats-slf4j" % "0.4.0-M2",
-      "org.bouncycastle"  % "bcprov-jdk15on"  % "1.65"
+      "org.rocksdb"       % "rocksdbjni"          % "6.4.6",
+      "ch.qos.logback"    % "logback-classic"     % "1.2.3",
+      "io.chrisdavenport" %% "log4cats-slf4j"     % "0.4.0-M2",
+      "org.bouncycastle"  % "bcprov-jdk15on"      % "1.65",
+      "dev.profunktor"    %% "redis4cats-effects" % redisVersion,
+      "dev.profunktor"    %% "redis4cats-streams" % redisVersion,
+      compilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
     ) ++ circe
   )
   .dependsOn(algorithms)

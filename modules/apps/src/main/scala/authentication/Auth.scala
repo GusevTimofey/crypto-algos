@@ -1,6 +1,7 @@
 package authentication
 
 import algos.hash.HashFunction
+import cats.Applicative
 import cats.effect.Sync
 import cats.syntax.flatMap._
 import cats.syntax.functor._
@@ -20,9 +21,9 @@ object Auth {
         _          <- Logger[F].info(s"Enter your login:")
         inputLogin <- F.delay(scala.io.StdIn.readLine())
         contains   <- db.contains(inputLogin.getBytes)
-        _ <- if (contains) checkPass(inputLogin)
-            else Logger[F].info(s"Unknown user. Please, do registration") >> reg(inputLogin)
-      } yield ()) >> enter
+        res <- if (contains) checkPass(inputLogin).map(_ => true)
+               else Logger[F].info(s"Unknown user. Please, do registration") >> reg(inputLogin).map(_ => false)
+      } yield res).ifM(Applicative[F].unit, enter)
 
     private def reg(l: String): F[Unit] =
       for {

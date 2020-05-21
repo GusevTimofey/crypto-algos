@@ -1,5 +1,6 @@
 package e2e
 
+import authentication.{ Auth, DB }
 import cats.effect.{ ExitCode, IO, IOApp }
 import cats.syntax.functor._
 import e2e.services.{ ClientService, ServerService }
@@ -9,13 +10,16 @@ import utils.HttpClientResource
 
 object ApplicationBob extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
-    HttpClientResource
-      .create[IO]
-      .use { client =>
+    (for {
+      client <- HttpClientResource.create[IO]
+      redis  <- DB.redis[IO]
+    } yield client -> redis).use {
+      case (client, db) =>
         Slf4jLogger
           .create[IO]
           .flatMap { implicit log =>
             for {
+              _          <- Auth(db).enter
               inputQueue <- Queue.bounded[IO, HttpDSL](10)
               messages   <- Queue.bounded[IO, e2e.Message](500)
               ss         = ServerService[IO](inputQueue, messages, 8081)
@@ -24,19 +28,21 @@ object ApplicationBob extends IOApp {
               _          <- (ss.run concurrently dh.bobScenario).compile.drain
             } yield ()
           }
-      }
-      .as(ExitCode.Success)
+    }.as(ExitCode.Success)
 }
 
 object ApplicationAlice extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
-    HttpClientResource
-      .create[IO]
-      .use { client =>
+    (for {
+      client <- HttpClientResource.create[IO]
+      redis  <- DB.redis[IO]
+    } yield client -> redis).use {
+      case (client, db) =>
         Slf4jLogger
           .create[IO]
           .flatMap { implicit log =>
             for {
+              _          <- Auth(db).enter
               inputQueue <- Queue.bounded[IO, HttpDSL](10)
               messages   <- Queue.bounded[IO, e2e.Message](500)
               ss         = ServerService[IO](inputQueue, messages, 8080)

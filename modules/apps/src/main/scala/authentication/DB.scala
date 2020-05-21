@@ -1,12 +1,13 @@
 package authentication
 
-import cats.effect.{ Resource, Sync }
+import cats.effect.{ Concurrent, ContextShift, Resource, Sync }
 import cats.syntax.applicative._
 import cats.syntax.applicativeError._
 import cats.syntax.flatMap._
 import cats.syntax.functor._
 import io.chrisdavenport.log4cats.Logger
 import org.rocksdb.{ Options, ReadOptions, RocksDB, WriteBatch, WriteOptions }
+import utils.RedisResource
 
 trait DB[F[_]] {
   def get(k: Array[Byte]): F[Array[Byte]]
@@ -15,7 +16,8 @@ trait DB[F[_]] {
 }
 
 object DB {
-  def apply[F[_]: Logger: Sync](path: String): Resource[F, DB[F]] =
+
+  def rocksDb[F[_]: Logger: Sync](path: String): Resource[F, DB[F]] =
     Resource
       .fromAutoCloseable(Sync[F].delay(RocksDB.open(new Options().setCreateIfMissing(true).prepareForBulkLoad(), path)))
       .map { db =>
@@ -44,4 +46,18 @@ object DB {
               }
         }
       }
+
+  def redis[F[_]: Concurrent: ContextShift]: Resource[F, DB[F]] =
+    RedisResource.create[F].map { cmd =>
+      new DB[F] {
+        override def get(k: Array[Byte]): F[Array[Byte]] =
+          cmd.get(new String(k)).map(_.getOrElse("")).map(_.getBytes)
+
+        override def put(k: Array[Byte], v: Array[Byte]): F[Unit] =
+          cmd.set(new String(k), new String(v))
+
+        override def contains(k: Array[Byte]): F[Boolean] =
+          cmd.exists(new String(k))
+      }
+    }
 }

@@ -45,7 +45,7 @@ object DHProgram {
             k         = bBig.modPow(a, p)
           } yield k
         )
-        .flatMap(k => chat("alice", Cipher.blowFish(k.toString().take(8))))
+        .flatMap(k => chat("bob", Cipher.blowFish(k.toString().take(8))))
 
     override def bobScenario: Stream[F, Unit] =
       Stream
@@ -60,7 +60,7 @@ object DHProgram {
             k    = aBig.modPow(b, pg.P)
           } yield k
         )
-        .flatMap(k => chat("bob", Cipher.blowFish(k.toString().take(8))))
+        .flatMap(k => chat("alice", Cipher.blowFish(k.toString().take(8))))
 
     private def chat(side: String, blowfish: BlowFishCipher): Stream[F, Unit] = {
       def received: Stream[F, Unit] =
